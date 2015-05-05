@@ -1,31 +1,34 @@
 from URLRepute.source import URLSource
-import sqlite3
+import pymongo
 import csv
 import urllib
-
+from tornado import gen
+import motor
 class PhishtankSource(URLSource):
     name = 'Phishtank'
     def __init__(self):
         URLSource.__init__(self)
-        list = self.cursor.execute('SELECT site FROM {0}  Limit 100;' .format(self.name))
-        for li in list:
+        db = self.client.Phishtank
+        cursor =db.Phishtank.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        for document in cursor:
+            li=document.values()
             n=str(li).find('u')
             n2=str(li).rfind(')')
             li=str(li)[n+2:n2-2]
             self.urls[li]=True
-        self.connection.close()
+        self.client.close()
+
+
 
 
     def update(self):
         URLSource.__init__(self)
+        db=self.client.drop_database('Phishtank')
+        db = self.client.Phishtank
         url = 'http://data.phishtank.com/data/online-valid.csv'
         urllib.urlretrieve(url, "phishtank.csv")
-        self.cursor.execute("""Delete from Phishtank ;""")
-        self.connection.commit()
         csv_iter =  csv.reader(file('phishtank.csv'))
         next(csv_iter)
         for row in csv_iter:
             row=self.slice_http(row[1])
-            self.cursor.execute("""insert into Phishtank (site) values ("{0}");""".format(row))
-        self.connection.commit()
-        self.connection.close()
+            db.OpenPhish.insert({'site':row})

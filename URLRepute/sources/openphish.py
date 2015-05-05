@@ -1,31 +1,34 @@
 from URLRepute.source import URLSource
-import sqlite3
+import pymongo
 import urllib
-
+import motor
+from tornado import gen
 class OpenPhishSource(URLSource):
     name = 'OpenPhish'
-    def __init__(self):
+
+    @gen.coroutine
+    def gets(self):
         URLSource.__init__(self)
-        list = self.cursor.execute('SELECT site FROM {0}  Limit 100;' .format(self.name))
-        for li in list:
+        db = self.client.OpenPhish
+        cursor =db.OpenPhish.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        while (yield cursor.fetch_next):
+            li = cursor.next_object().values()
             n=str(li).find('u')
             n2=str(li).rfind(')')
             li=str(li)[n+2:n2-4]
             self.urls[li]=True
-        self.connection.close()
+        self.client.close()
 
 
     def update(self):
         URLSource.__init__(self)
+        db=self.client.drop_database('OpenPhish')
+        db = self.client.OpenPhish
         url = 'https://www.openphish.com/feed.txt'
         urllib.urlretrieve(url, "feed.txt")
-        self.cursor.execute("""Delete from OpenPhish ;""")
-        self.connection.commit()
         for row in open('feed.txt','r'):
             row=self.slice_http(row)
-            self.cursor.execute("""insert into OpenPhish (site) values ("{0}");""".format(row))
-        self.connection.commit()
-        self.connection.close()
+            db.OpenPhish.insert({'site':row})
 
 
 

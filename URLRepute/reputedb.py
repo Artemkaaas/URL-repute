@@ -1,13 +1,19 @@
 from URLRepute.sources.alexa import AlexaSource
 from URLRepute.sources.openphish import OpenPhishSource
 from URLRepute.sources.phishtank import PhishtankSource
-
+import motor
+from tornado import gen
+from tornado.web import asynchronous
 class URLReputeDB(object):
+    @asynchronous
+    @gen.coroutine
     def __init__(self):
         self.sources = []
-        self.sources.append(AlexaSource())
-        self.sources.append(OpenPhishSource())
-        self.sources.append(PhishtankSource())
+        c=yield gen.Task(OpenPhishSource().gets)
+        self.sources.append(c)
+        #self.sources.append(AlexaSource())
+        #self.sources.append(PhishtankSource())
+
 
     def get_repute(self, url):
         found_in = []

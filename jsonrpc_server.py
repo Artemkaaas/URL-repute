@@ -6,15 +6,16 @@ from URLRepute.sources.alexa import AlexaSource
 from URLRepute.sources.openphish import OpenPhishSource
 from URLRepute.sources.phishtank import PhishtankSource
 
-class URLReputeHandler(JSONRPCHandler):
+from tornado import gen
 
+class URLReputeHandler(JSONRPCHandler):
     def get_url_repute(self, url):
         repute_db = URLReputeDB()
         found_in = repute_db.get_repute(url)
         return found_in
 
 print 'Starting server...'
-start_server(URLReputeHandler, port=8184)
+start_server(URLReputeHandler, port=8188)
 
 
 #update database

@@ -1,15 +1,11 @@
 import re
-import sqlite3
-from tornado import gen
-
+from pymongo import *
+import motor
 class URLSource(object):
     name = 'generic'
     def __init__(self):
-        dbPath = 'sites.db'
+        self.client=motor.MotorClient('localhost',27017)
         self.urls=dict()
-        self.connection = sqlite3.connect(dbPath)
-        self.cursor = self.connection.cursor()
-
 
     def check_url(self, url):
         dif_urls=self.dif_url(url)
