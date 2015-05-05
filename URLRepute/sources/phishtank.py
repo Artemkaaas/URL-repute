@@ -4,17 +4,21 @@ import csv
 import urllib
 from tornado import gen
 import motor
+from tornado import gen
+
 class PhishtankSource(URLSource):
     name = 'Phishtank'
-    def __init__(self):
+
+    @gen.coroutine
+    def get_site(self):
         URLSource.__init__(self)
         db = self.client.Phishtank
         cursor =db.Phishtank.find({ }, { 'site': 1, '_id': 0}).limit(10)
-        for document in cursor:
-            li=document.values()
+        while (yield cursor.fetch_next):
+            li = cursor.next_object().values()
             n=str(li).find('u')
-            n2=str(li).rfind(')')
-            li=str(li)[n+2:n2-2]
+            n2=str(li).rfind(']')
+            li=str(li)[n+2:n2-1]
             self.urls[li]=True
         self.client.close()
 

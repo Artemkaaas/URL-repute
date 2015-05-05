@@ -3,11 +3,11 @@ import pymongo
 import urllib
 import motor
 from tornado import gen
+from tornado.web import asynchronous
 class OpenPhishSource(URLSource):
     name = 'OpenPhish'
-
     @gen.coroutine
-    def gets(self):
+    def get_site(self):
         URLSource.__init__(self)
         db = self.client.OpenPhish
         cursor =db.OpenPhish.find({ }, { 'site': 1, '_id': 0}).limit(10)
@@ -15,9 +15,11 @@ class OpenPhishSource(URLSource):
             li = cursor.next_object().values()
             n=str(li).find('u')
             n2=str(li).rfind(')')
-            li=str(li)[n+2:n2-4]
+            li=str(li)[n+2:n2-3]
             self.urls[li]=True
         self.client.close()
+
+
 
 
     def update(self):

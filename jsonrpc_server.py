@@ -1,31 +1,41 @@
 from tornadorpc.json import JSONRPCHandler
-from tornadorpc import private, start_server
 from URLRepute.reputedb import URLReputeDB
-import time
 from URLRepute.sources.alexa import AlexaSource
 from URLRepute.sources.openphish import OpenPhishSource
 from URLRepute.sources.phishtank import PhishtankSource
+import tornado.options
+import tornado
 
-from tornado import gen
 
 class URLReputeHandler(JSONRPCHandler):
+    repute_db = URLReputeDB()
+    repute_db.initialize()
+
     def get_url_repute(self, url):
-        repute_db = URLReputeDB()
-        found_in = repute_db.get_repute(url)
+        found_in = self.repute_db.get_repute(url)
         return found_in
 
-print 'Starting server...'
-start_server(URLReputeHandler, port=8188)
-
-
 #update database
-while True:
+def update():
+    AlexaSource.update()
+    OpenPhishSource.update()
+    PhishtankSource.update()
+
+def get_day_update():
     f=open('config.txt','r')
     times=f.readline()
     n=times.index(':')
     day=int(times[n+1:])
     f.close()
-    time.sleep(day*24*60*60)
-    AlexaSource.update()
-    OpenPhishSource.update()
-    PhishtankSource.update()
+    return day
+
+print 'Starting server...'
+tornado.options.parse_command_line()
+app = tornado.web.Application(
+        [
+            (r"/", URLReputeHandler),
+            ],
+        )
+app.listen(8817)
+tornado.ioloop.PeriodicCallback(update, int(get_day_update())*60*60*24*100).start()
+tornado.ioloop.IOLoop.instance().start()

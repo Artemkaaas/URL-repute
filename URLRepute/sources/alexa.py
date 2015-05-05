@@ -3,19 +3,20 @@ import sqlite3
 import csv
 import urllib
 from zipfile import ZipFile
+from tornado import gen
 
 class AlexaSource(URLSource):
     name = 'Alex'
-
-    def __init__(self):
+    @gen.coroutine
+    def get_site(self):
         URLSource.__init__(self)
         db = self.client.Alex
-        cursor =db.Alex.find({ }, { 'site': 1, '_id': 0}).limit(40)
-        for document in cursor:
-            li=document.values()
+        cursor =db.Alex.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        while (yield cursor.fetch_next):
+            li = cursor.next_object().values()
             n=str(li).find('u')
             n2=str(li).rfind(')')
-            li=str(li)[n+2:n2-2]
+            li=str(li)[n+2:n2-3]
             self.urls[li]=True
         self.client.close()
 

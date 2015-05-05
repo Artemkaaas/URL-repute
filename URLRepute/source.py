@@ -16,7 +16,6 @@ class URLSource(object):
             except:
                 pass
 
-
     def slice_http(self,url):
         n=url.find('/')+1
         url=url[n+1:]
@@ -37,7 +36,6 @@ class URLSource(object):
         else :
             type=1
         url=self.slice_http(url)
-
         if type==2:
             dif_urls.append(url)
             reip = re.compile('^[\d+\.]{4}$')
@@ -83,4 +81,5 @@ class URLSource(object):
                     n2=url2.rfind('/')
                 url2=url2[:n2]
                 dif_urls.append(url2)
+
         return dif_urls
