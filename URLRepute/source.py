@@ -1,5 +1,4 @@
 import re
-from pymongo import *
 import motor
 class URLSource(object):
     name = 'generic'
@@ -64,7 +63,10 @@ class URLSource(object):
         if type==1:
             regx = re.compile('^\w+\.[a-z]+$')
             url2=url
-            n2=url.index('.')+1
+            try:
+                n2=url.index('.')+1
+            except:
+                return dif_urls
             url2=url2[n2:]
             dif_urls.append(url)
             dif_urls.append(url2)

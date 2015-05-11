@@ -7,7 +7,6 @@ class URLReputeDB(object):
     def __init__(self):
         self.sources=[]
 
-    @gen.coroutine
     def initialize(self):
         OpenPhish=OpenPhishSource()
         gen.Task(OpenPhish.get_site)

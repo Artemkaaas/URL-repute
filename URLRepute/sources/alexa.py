@@ -1,10 +1,9 @@
 from URLRepute.source import URLSource
-import sqlite3
 import csv
 import urllib
 from zipfile import ZipFile
 from tornado import gen
-
+import motor
 class AlexaSource(URLSource):
     name = 'Alex'
     @gen.coroutine
@@ -20,7 +19,6 @@ class AlexaSource(URLSource):
             self.urls[li]=True
         self.client.close()
 
-
     def update(self):
         URLSource.__init__(self)
         db=self.client.drop_database('Alex')
@@ -32,4 +30,4 @@ class AlexaSource(URLSource):
         for row in zfile.open('top-1m.csv'):
             n=str(row).find(',')
             row=str(row)[n+1:]
-            db.Alex.insert({'site':row})
+            db.Alex.insert({'site':row}, callback=None)

@@ -3,8 +3,6 @@ import pymongo
 import csv
 import urllib
 from tornado import gen
-import motor
-from tornado import gen
 
 class PhishtankSource(URLSource):
     name = 'Phishtank'
@@ -23,8 +21,6 @@ class PhishtankSource(URLSource):
         self.client.close()
 
 
-
-
     def update(self):
         URLSource.__init__(self)
         db=self.client.drop_database('Phishtank')
@@ -35,4 +31,4 @@ class PhishtankSource(URLSource):
         next(csv_iter)
         for row in csv_iter:
             row=self.slice_http(row[1])
-            db.OpenPhish.insert({'site':row})
+            db.OpenPhish.insert({'site':row}, callback=None)

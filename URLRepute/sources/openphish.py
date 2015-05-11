@@ -1,9 +1,8 @@
 from URLRepute.source import URLSource
-import pymongo
 import urllib
-import motor
 from tornado import gen
-from tornado.web import asynchronous
+
+
 class OpenPhishSource(URLSource):
     name = 'OpenPhish'
     @gen.coroutine
@@ -30,7 +29,7 @@ class OpenPhishSource(URLSource):
         urllib.urlretrieve(url, "feed.txt")
         for row in open('feed.txt','r'):
             row=self.slice_http(row)
-            db.OpenPhish.insert({'site':row})
+            db.OpenPhish.insert({'site':row}, callback=None)
 
 
 
