@@ -10,7 +10,7 @@ class AlexaSource(URLSource):
     def get_site(self):
         URLSource.__init__(self)
         db = self.client.Alex
-        cursor =db.Alex.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        cursor =db.Alex.find({ }, { 'site': 1, '_id': 0}).limit(100000)
         while (yield cursor.fetch_next):
             li = cursor.next_object().values()
             n=str(li).find('u')
@@ -19,6 +19,7 @@ class AlexaSource(URLSource):
             self.urls[li]=True
         self.client.close()
 
+    @gen.coroutine
     def update(self):
         URLSource.__init__(self)
         db=self.client.drop_database('Alex')
@@ -30,4 +31,5 @@ class AlexaSource(URLSource):
         for row in zfile.open('top-1m.csv'):
             n=str(row).find(',')
             row=str(row)[n+1:]
-            db.Alex.insert({'site':row}, callback=None)
+            future=db.Alex.insert({'site':row})
+            result=yield future

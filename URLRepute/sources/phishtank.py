@@ -11,7 +11,7 @@ class PhishtankSource(URLSource):
     def get_site(self):
         URLSource.__init__(self)
         db = self.client.Phishtank
-        cursor =db.Phishtank.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        cursor =db.Phishtank.find({ }, { 'site': 1, '_id': 0}).limit(100000)
         while (yield cursor.fetch_next):
             li = cursor.next_object().values()
             n=str(li).find('u')
@@ -20,7 +20,7 @@ class PhishtankSource(URLSource):
             self.urls[li]=True
         self.client.close()
 
-
+    @gen.coroutine
     def update(self):
         URLSource.__init__(self)
         db=self.client.drop_database('Phishtank')
@@ -31,4 +31,5 @@ class PhishtankSource(URLSource):
         next(csv_iter)
         for row in csv_iter:
             row=self.slice_http(row[1])
-            db.OpenPhish.insert({'site':row}, callback=None)
+            future=db.OpenPhish.insert({'site':row})
+            result=yield future

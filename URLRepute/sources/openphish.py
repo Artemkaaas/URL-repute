@@ -9,7 +9,7 @@ class OpenPhishSource(URLSource):
     def get_site(self):
         URLSource.__init__(self)
         db = self.client.OpenPhish
-        cursor =db.OpenPhish.find({ }, { 'site': 1, '_id': 0}).limit(10)
+        cursor =db.OpenPhish.find({ }, { 'site': 1, '_id': 0}).limit(100000)
         while (yield cursor.fetch_next):
             li = cursor.next_object().values()
             n=str(li).find('u')
@@ -20,7 +20,7 @@ class OpenPhishSource(URLSource):
 
 
 
-
+    @gen.coroutine
     def update(self):
         URLSource.__init__(self)
         db=self.client.drop_database('OpenPhish')
@@ -29,7 +29,7 @@ class OpenPhishSource(URLSource):
         urllib.urlretrieve(url, "feed.txt")
         for row in open('feed.txt','r'):
             row=self.slice_http(row)
-            db.OpenPhish.insert({'site':row}, callback=None)
-
+            future= db.OpenPhish.insert({'site':row})
+            result=yield future
 
 
