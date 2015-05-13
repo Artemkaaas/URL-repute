@@ -3,24 +3,35 @@ $(document).ready(function() {
     if (!window.console.log) window.console.log = function() {};
 
     $("#urlform").live("submit", function() {
-        newUrl($(this));
+        newMessage($(this));
         return false;
     });
     $("#urlform").live("keypress", function(e) {
         if (e.keyCode == 13) {
-            newUrl($(this));
+            newMessage($(this));
             return false;
         }
     });
     $("#message").select();
-    updater.start();
 });
 
-function newUrl(form) {
+function newMessage(form) {
     var message = form.formToDict();
-    updater.socket.send(JSON.stringify(message));
-    form.find("input[type=text]").val("").select();
+    var disabled = form.find("input[type=submit]");
+    $.postJSON("/a/url/new", message, function(response) {
+	        updater.showMessage(response);
+
+    });
 }
+
+jQuery.postJSON = function(url, args, callback) {
+    $.ajax({url: url, data: $.param(args), dataType: "text", type: "POST",
+            success: function(response) {
+        if (callback) callback(eval("(" + response + ")"));
+    }, error: function(response) {
+        console.log("ERROR:", response)
+    }});
+};
 
 jQuery.fn.formToDict = function() {
     var fields = this.serializeArray();
@@ -31,22 +42,6 @@ jQuery.fn.formToDict = function() {
     if (json.next) delete json.next;
     return json;
 };
-
-var updater = {
-    socket: null,
-
-    start: function() {
-        var url = "ws://" + location.host + "/urlsocket";
-        updater.socket = new WebSocket(url);
-        updater.socket.onmessage = function(event) {
-            updater.showMessage(JSON.parse(event.data));
-        }
-    },
-
-    showMessage: function(message) {
-        var node = $(message.html);
-        node.hide();
-        $("#inbox").append(node);
-        node.slideDown();
-    }
 };
+
+
