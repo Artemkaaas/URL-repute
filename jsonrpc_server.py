@@ -43,7 +43,7 @@ class URLReputeHandler(JSONRPCHandler):
                 future=db.HistoryURL.insert({u'from':source.name,u'site':post,u'date':datetime.datetime.now()})
                 result=yield future
 
-        db.HistoryURL.remove({'date':{ "$lt": datetime.datetime.fromtimestamp(time.time()-time0)}})
+        result = yield db.HistoryURL.remove({'date':{ "$lt": datetime.datetime.fromtimestamp(time.time()-time0)}})
         client.close()
 
     def post(self):
