@@ -1,0 +1,4 @@
+{
+    "sources": ["Alexa","OpenPhish","Phishtank"],
+    "update frequency": "1h"
+}

@@ -1,8 +1,8 @@
 from tornadorpc.json import JSONRPCHandler
 from URLRepute.reputedb import URLReputeDB
-from URLRepute.sources.alexa import AlexaSource
-from URLRepute.sources.openphish import OpenPhishSource
-from URLRepute.sources.phishtank import PhishtankSource
+from URLRepute.sources.Alexa import AlexaSource
+from URLRepute.sources.OpenPhish import OpenPhishSource
+from URLRepute.sources.Phishtank import PhishtankSource
 import tornado.options
 import tornado
 import os.path
@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import time
 import motor
 from tornado import gen
+import json
 
 class URLReputeHandler(JSONRPCHandler):
     repute_db = URLReputeDB()
@@ -60,24 +61,34 @@ class URLReputeHandler(JSONRPCHandler):
             }
         self.render("index.html", messages=result)
 
+
+
+
+
 #update database
 def update():
     Alexa=AlexaSource()
     Alexa.update()
-    OpenPhish=()
+    OpenPhish=OpenPhishSource()
     OpenPhish.update()
-    Phishtank=()
+    Phishtank=PhishtankSource()
     Phishtank.update()
     URLReputeHandler.update_history
 
 
 def get_day_update():
-    f=open('config.txt','r')
-    times=f.readline()
-    n=times.index(':')
-    day=int(times[n+1:])
-    f.close()
-    return day
+    with open("config.json") as json_file:
+        json_data = json.load(json_file)
+    time=json_data["update frequency"]
+    time=time[:-1]
+    a=time[-1:]
+    if a=='s':pass
+    elif a=='m':time*=60
+    elif a=='h':time*=60*60
+    elif a=='d':time*=60*60*24
+    elif a=='w':time*=60*60*24*7
+    else:time=60*60*60*60
+    return time
 
 print 'Starting server...'
 tornado.options.parse_command_line()
@@ -94,5 +105,5 @@ debug=True,
 
         )
 app.listen(8881)
-tornado.ioloop.PeriodicCallback(update, int(get_day_update())*60*60*24*100).start()
+tornado.ioloop.PeriodicCallback(update, int(get_day_update())).start()
 tornado.ioloop.IOLoop.instance().start()
