@@ -2,7 +2,8 @@ from tornado import gen
 import json
 import imp
 import os
-import motor
+from URLRepute.sources.History import HistorySource
+
 class URLReputeDB(object):
     def __init__(self):
         self.sources=[]
@@ -13,43 +14,27 @@ class URLReputeDB(object):
     def initialize(self):
         with open("config.json") as json_file:
             json_data = json.load(json_file)
-        source_from=json_data["sources"]
-        for s_f in source_from:
+        source=[]
+        handler=[]
+        name=[]
+        for j_d in json_data["sources"]:
+            source.append(j_d['source'])
+            handler.append(j_d['handler'])
+            name.append(j_d['name'])
+
+        for i in range(len(name)):
             tree = os.walk(os.getcwd())
             for t in tree:
                 try:
-                    f,filename,description =imp.find_module(s_f,[t[0]])
-                    package = imp.load_module(s_f, f, filename, description)
-                    if s_f=='Alexa':
-                        Alex=package.AlexaSource()
-                        gen.Task(Alex.get_site)
-                        self.sources.append(Alex)
-                    if s_f=='Phishtank':
-                        Phishtank=package.PhishtankSource()
-                        gen.Task(Phishtank.get_site)
-                        self.sources.append(Phishtank)
-                    if s_f=='OpenPhish':
-                        OpenPhish=package.OpenPhishSource()
-                        gen.Task(OpenPhish.get_site)
-                        self.sources.append(OpenPhish)
+                    f,filename,description =imp.find_module(name[i],[t[0]])
+                    package = imp.load_module(name[i], f, filename, description)
+                    c= getattr(package,str(handler[i]))
+                    c=c()
+                    gen.Task(c.get_site)
+                    self.sources.append(c)
                 except:pass
-
-
-
-    @gen.coroutine
-    def check_in_history(self,url):
-        client=motor.MotorClient('localhost',27017)
-        db = client.HistoryURL
-        cursor =db.HistoryURL.find({ }, {'_id': 0}).limit(5)
-        while (yield cursor.fetch_next):
-            c = cursor.next_object().values()
-            date=c[0]
-            name=c[1]
-            site=c[2]
-            if site[0].strip()==url:
-                self.found_in.append(name)
-                self.found_in.append(date)
-        client.close()
+        History=HistorySource()
+        gen.Task(History.get_site)
 
 
     def get_repute(self, url):
@@ -58,6 +43,5 @@ class URLReputeDB(object):
             if source.check_url(url):
                 self.found_in.append(source.name)
         if not self.found_in:
-            gen.Task(self.check_in_history(url))
+            self.found_in=source.check_in_history(url)
         return self.found_in
-

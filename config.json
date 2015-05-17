@@ -1,4 +1,16 @@
 {
-    "sources": ["Alexa","OpenPhish","Phishtank"],
+    "sources": [
+        {
+            "name": "Alexa",
+            "source": "/URLRepute/sources/alexa.py",
+            "handler": "AlexaSource"
+        },
+        {
+            "name": "OpenPhish",
+            "source": "/URLRepute/sources/openphish.py",
+            "handler": "OpenPhishSource"
+        }
+    ],
     "update frequency": "1h"
 }
+

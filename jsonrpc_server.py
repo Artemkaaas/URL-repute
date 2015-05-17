@@ -10,12 +10,12 @@ import logging
 import uuid
 import tornado.websocket
 import tornado.web
-from pymongo import *
 from datetime import datetime, timedelta
 import time
 import motor
 from tornado import gen
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 class URLReputeHandler(JSONRPCHandler):
     repute_db = URLReputeDB()
@@ -63,17 +63,21 @@ class URLReputeHandler(JSONRPCHandler):
 
 
 
-
-
 #update database
 def update():
+    source=[]
     Alexa=AlexaSource()
-    Alexa.update()
+    source.append(Alexa)
     OpenPhish=OpenPhishSource()
-    OpenPhish.update()
+    source.append(OpenPhish)
     Phishtank=PhishtankSource()
-    Phishtank.update()
-    URLReputeHandler.update_history
+    source.append(Phishtank)
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        for sourc in source:
+            executor.submit(gen.Task(sourc.update))
+    URLReputeHandler.update_history()
+    URLReputeHandler.repute_db.initialize()
+
 
 
 def get_day_update():
@@ -105,5 +109,7 @@ debug=True,
 
         )
 app.listen(8881)
+
+
 tornado.ioloop.PeriodicCallback(update, int(get_day_update())).start()
 tornado.ioloop.IOLoop.instance().start()

@@ -1,10 +1,23 @@
 import re
 import motor
+
 class URLSource(object):
     name = 'generic'
     def __init__(self):
         self.client=motor.MotorClient('localhost',27017)
         self.urls=dict()
+        self.hist_urls=dict()
+
+    def check_in_history(self,url):
+        dif_urls=self.dif_url(url)
+        self.v=[]
+        for dif_ur in dif_urls:
+            try:
+                self.hist_urls[dif_ur]
+                self.v.append(self.hist_urls[dif_ur])
+            except:
+                pass
+        return self.v
 
     def check_url(self, url):
         dif_urls=self.dif_url(url)
